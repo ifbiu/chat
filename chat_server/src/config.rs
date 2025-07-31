@@ -11,7 +11,7 @@ pub struct AppConfig {
 impl AppConfig {
     pub fn load() -> Result<Self,Error> {
         let ret = match (
-            File::open("app.yaml"),
+            File::open("chat_server/app.yaml"),
             File::open("/etc/config/app.yaml"),
             env::var("CHAT_CONFIG"),
             ) {
