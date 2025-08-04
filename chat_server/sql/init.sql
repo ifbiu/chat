@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     fullname VARCHAR(64) NOT NULL,
-    password VARCHAR(64) NOT NULL,
+    password_hash VARCHAR(64) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS messages(
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (chat_id) REFERENCES chats(id),
-    FOREIGN KEY (sender_id) REFERENCES users(id),
+    FOREIGN KEY (sender_id) REFERENCES users(id)
 );
 
 CREATE INDEX IF NOT EXISTS chat_id_created_at_index ON messages(chat_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS sender_id_index ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS sender_id_index ON messages(sender_id, created_at DESC);
