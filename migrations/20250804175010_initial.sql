@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
                                      id BIGSERIAL PRIMARY KEY,
                                      fullname VARCHAR(64) NOT NULL,
+    email varchar(64) NOT NULL,
     password_hash VARCHAR(97) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
 
 CREATE TYPE char_type AS ENUM(
