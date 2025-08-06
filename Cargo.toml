@@ -12,3 +12,8 @@ thiserror = "2.0.12"
 tokio = { version = "1.47.0", features = ["rt", "rt-multi-thread", "macros"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+openssl = { version = "0.10", features = ["vendored"] }
+
+
+[env]
+OPENSSL_STATIC = "1"
