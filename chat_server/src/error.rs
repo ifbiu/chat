@@ -1,13 +1,19 @@
-use axum::body::Body;
-use axum::http;
 use axum::http::StatusCode;
 use axum::response::Json;
 use axum::response::{IntoResponse, Response};
-use serde_json::json;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ErrorOutput {
+    pub error: String,
+}
 
 #[derive(Error, Debug)]
 pub enum AppError {
+    #[error("email already exists: {0}")]
+    EmailAlreadyExists(String),
+
     #[error("sql error: {0}")]
     SqlxError(#[from] sqlx::Error),
 
@@ -18,21 +24,27 @@ pub enum AppError {
     JwtError(#[from] jwt_simple::Error),
 
     #[error("http header parse error: {0}")]
-    HttpHeaderError(#[from] http::header::InvalidHeaderValue),
+    HttpHeaderError(#[from] axum::http::header::InvalidHeaderValue),
+}
 
-    #[error("from utf8 error: {0}")]
-    FromUtf8Error(#[from] std::string::FromUtf8Error),
+impl ErrorOutput {
+    pub fn new(error: impl Into<String>) -> Self {
+        Self {
+            error: error.into(),
+        }
+    }
 }
 
 impl IntoResponse for AppError {
-    fn into_response(self) -> Response<Body> {
+    fn into_response(self) -> Response<axum::body::Body> {
         let status = match &self {
-            Self::SqlxError(_) =>StatusCode::INTERNAL_SERVER_ERROR,
-            Self::PasswordHashError(_) =>StatusCode::UNPROCESSABLE_ENTITY,
-            Self::JwtError(_) =>StatusCode::FORBIDDEN,
-            Self::HttpHeaderError(_) =>StatusCode::BAD_REQUEST,
-            Self::FromUtf8Error(_) =>StatusCode::BAD_REQUEST,
+            Self::SqlxError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::PasswordHashError(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::JwtError(_) => StatusCode::FORBIDDEN,
+            Self::HttpHeaderError(_) => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::EmailAlreadyExists(_) => StatusCode::CONFLICT,
         };
-        (status, Json(json!({"error": self.to_string()}))).into_response()
+
+        (status, Json(ErrorOutput::new(self.to_string()))).into_response()
     }
 }
