@@ -7,6 +7,8 @@ const JWT_DURATION: u64 = 60 * 60 * 24 * 7;
 const JWT_ISSUER: &str = "chat_server";
 const JWT_AUDIENCE: &str = "chat_web";
 pub struct EncodingKey(Ed25519KeyPair);
+
+#[allow(unused)]
 pub struct DecodingKey(Ed25519PublicKey);
 
 impl Deref for EncodingKey {
@@ -35,6 +37,7 @@ impl DecodingKey {
         Ok(Self(Ed25519PublicKey::from_pem(pem)?))
     }
 
+    #[allow(unused)]
     pub fn verify(&self,token:&str) -> Result<User, AppError> {
         let mut options = VerificationOptions::default();
         options.allowed_issuers = Some(HashSet::from_strings(&[JWT_ISSUER]));
@@ -59,6 +62,7 @@ mod tests {
         let user = User::new(1,"Candide","cifbiu@gmail.com");
         let token = ek.sign(user.clone())?;
         let user2 = dk.verify(&token)?;
+        assert_eq!(user, user2);
         Ok(())
     }
 }
