@@ -3,12 +3,14 @@ mod error;
 mod handlers;
 mod models;
 mod utils;
+mod middlewares;
 
 use anyhow::Context;
 use handlers::*;
 use sqlx::PgPool;
 use std::{fmt, ops::Deref, sync::Arc};
 use utils::{DecodingKey, EncodingKey};
+use tower::ServiceBuilder;
 
 pub use error::{AppError, ErrorOutput};
 pub use models::User;
@@ -17,8 +19,12 @@ use axum::{
     routing::{get, patch, post},
     Router,
 };
-
+use tower_http::compression::CompressionLayer;
+use tower_http::LatencyUnit;
+use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
+use tracing::Level;
 pub use config::AppConfig;
+use crate::middlewares::set_layer;
 
 #[derive(Debug, Clone)]
 pub(crate) struct AppState {
@@ -53,7 +59,7 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
         .nest("/api", api)
         .with_state(state);
 
-    Ok(app)
+    Ok(set_layer(app))
 }
 
 // 当我调用 state.config => state.inner.config

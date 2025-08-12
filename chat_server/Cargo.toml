@@ -17,8 +17,13 @@ serde_yaml = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
+tower-http = { version = "0.6.6", features = ["compression-full", "trace"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+tower = "0.5.2"
+uuid = { version = "1.17.0", features = ["v7","serde"] }
+futures-util = "0.3.31"
+axum-extra = { version = "0.9.3", features = ["typed-header"] }
 
 [dev-dependencies]
 http-body-util = "0.1.1"
