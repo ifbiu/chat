@@ -4,9 +4,9 @@ POST http://localhost:6688/api/signup
 Content-Type: application/json
 
 {
-    "fullname": "Candide",
-    "email": "cifbiu@gmail.com",
-    "password": "123456"
+  "fullname": "Alice Chen",
+  "email": "alice@acme.org",
+  "password": "123456"
 }
 
 ### signin user (valid)
@@ -15,16 +15,26 @@ POST http://localhost:6688/api/signin
 Content-Type: application/json
 
 {
-    "email": "cifbiu@gmail.com",
-    "password": "123456"
+  "email": "tchen@acme.org",
+  "password": "123456"
 }
 
 ### signin user (invalid)
 
+# @name signin
 POST http://localhost:6688/api/signin
 Content-Type: application/json
 
 {
-    "email": "cifbiu@gmail.com",
+    "email": "alice@acme.org",
     "password": "123456"
 }
+
+@token = {{signin.response.body.token}}
+
+
+### get chat list
+
+
+GET http://localhost:6688/api/chat
+Authorization: Bearer {{token}}
