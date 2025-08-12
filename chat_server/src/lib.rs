@@ -1,32 +1,27 @@
 mod config;
 mod error;
 mod handlers;
+mod middlewares;
 mod models;
 mod utils;
-mod middlewares;
 
 use anyhow::Context;
 use handlers::*;
+use middlewares::{set_layer, verify_token};
 use sqlx::PgPool;
 use std::{fmt, ops::Deref, sync::Arc};
 use utils::{DecodingKey, EncodingKey};
-use tower::ServiceBuilder;
 
 pub use error::{AppError, ErrorOutput};
 pub use models::User;
 
 use axum::{
+    middleware::from_fn_with_state,
     routing::{get, patch, post},
     Router,
 };
-use axum::handler::Handler;
-use axum::middleware::from_fn_with_state;
-use tower_http::compression::CompressionLayer;
-use tower_http::LatencyUnit;
-use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
-use tracing::Level;
+
 pub use config::AppConfig;
-use crate::middlewares::{set_layer, verify_token};
 
 #[derive(Debug, Clone)]
 pub(crate) struct AppState {
@@ -61,9 +56,9 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
     let app = Router::new()
         .route("/", get(index_handler))
         .nest("/api", api)
-        .with_state(state.clone());
+        .with_state(state);
 
-    Ok(set_layer(app, state))
+    Ok(set_layer(app))
 }
 
 // 当我调用 state.config => state.inner.config
@@ -109,7 +104,8 @@ impl AppState {
         use sqlx_db_tester::TestPg;
         let dk = DecodingKey::load(&config.auth.pk).context("load pk failed")?;
         let ek = EncodingKey::load(&config.auth.sk).context("load sk failed")?;
-        let server_url = config.server.db_url.split('/').next().unwrap();
+        let post = config.server.db_url.rfind('/').expect("invalid db_url");
+        let server_url = &config.server.db_url[..post];
         let tdb = TestPg::new(
             server_url.to_string(),
             std::path::Path::new("../migrations"),
